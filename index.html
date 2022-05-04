@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <html>
+    <head>
+        <title>Using web3 API with MetaMask</title>
+        <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+        <script>
+            window.addEventListener('load', function () {
+                if (window.ethereum) {
+                    window.web3 = new Web3(ethereum);
+                    ethereum.enable()
+                        .then(() => {
+                            console.log("Ethereum enabled");
+                        })
+                        .catch(() => {
+                            console.warn('User didn\'t allow access to accounts.');
+                            waitLogin();
+                        });
+                } else {
+                    console.log("Non-Ethereum browser detected. You should consider installing MetaMask.");
+                }
+            });
+        </script>
+    </head>
+    <body>
+        <button onclick="createSignature()">Create Signature</button>
+        
+        <script>
+
+            function Transfer(seller, tokenAddress, amount) {
+                return { seller, tokenAddress, amount };
+            }
+
+            let accounts = [];
+            async function getAccounts() {
+                console.log(window.ethereum);
+                accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                console.log('accounts', accounts)
+            }
+            getAccounts();
+
+            const contractAddress = "0xc6Ef496FD873e2030A4408CDc22D9838e7006962";
+            const abi = [{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"previousAdmin","type":"address"},{"indexed":false,"internalType":"address","name":"newAdmin","type":"address"}],"name":"AdminChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"beacon","type":"address"}],"name":"BeaconUpgraded","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint8","name":"version","type":"uint8"}],"name":"Initialized","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"implementation","type":"address"}],"name":"Upgraded","type":"event"},{"inputs":[{"components":[{"internalType":"address","name":"seller","type":"address"},{"internalType":"address","name":"tokenAddress","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"address","name":"buyer","type":"address"}],"internalType":"struct TestEIP714.Transfer","name":"data","type":"tuple"},{"internalType":"address","name":"buyer","type":"address"},{"internalType":"bytes","name":"signature","type":"bytes"}],"name":"getTokens","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"initialize","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"proxiableUUID","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"token","outputs":[{"internalType":"contract IERC20Upgradeable","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newImplementation","type":"address"}],"name":"upgradeTo","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newImplementation","type":"address"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"upgradeToAndCall","outputs":[],"stateMutability":"payable","type":"function"}]
+            
+            // let web_3 = new Web3("wss://rinkeby.infura.io/ws/v3/3df86088496b4ef2ba618eb4764d0b7a");
+            let web_3 = new Web3("https://data-seed-prebsc-2-s2.binance.org:8545/");
+            
+            let contractInstance = new web_3.eth.Contract(abi, contractAddress)
+
+            let transfer = Transfer("0x9A162d24D7e3BF601a412F1a8eAf9D7D892a4742", contractAddress, (10*10**14).toString());
+
+
+            async function createSignature() {
+
+                let param = JSON.stringify({
+                    types: {
+                        EIP712Domain: [
+                            { name: 'name', type: 'string' },
+                            { name: 'version', type: 'string' },
+                            { name: 'chainId', type: 'uint256' },
+                            { name: 'verifyingContract', type: 'address' }
+                        ],
+                        Transfer: [
+                            {name:"Hii"}
+                        ],
+                        // Order: [
+                        //     { name: 'seller', type: 'address' },
+                        //     { name: 'saleType', type: 'bytes4' },
+                        //     { name: 'tokenAddress', type: 'address' },
+                        //     { name: 'tokenId', type: 'uint256' },
+                        //     { name: 'amount', type: 'uint256' },
+                        //     { name: 'startTime', type: 'uint256' },
+                        //     { name: 'endTime', type: 'uint256' },
+                        //     { name: 'nonce', type: 'uint256' }
+                        // ]
+                    },
+                    primaryType: 'Transfer',
+                    domain: {
+                        name: 'Transfer',
+                        version: '1',
+                        chainId: 97,
+                        verifyingContract: contractAddress
+                    },
+                    message: transfer
+                })
+
+
+                const signature = await window.ethereum.request({ method: 'eth_signTypedData_v4', params: [accounts[0], param]});
+                console.log('signature', signature)
+
+
+                getTransfer(signature);
+            }
+
+            async function getTransfer() {
+                let signature = "0x5cd483239b77667dc14d291be8e57c8f35350c0b502f1881d0223c18f1fcb878486f096c6477802ead675dedfe3da822a629503ac13f53f125fc67e064017ea11c"
+                let orderAbi = await contractInstance.methods.completeBidding(bidOrder, signature).encodeABI();
+            
+                let transactionParams = {
+                    from: "0x9A162d24D7e3BF601a412F1a8eAf9D7D892a4742",
+                    to: contractAddress,
+                    data: orderAbi,
+                }
+                const transaction = await window.ethereum.request({ method: 'eth_sendTransaction', params: [transactionParams]});
+            }
+        </script>
+    </body>
+</html>

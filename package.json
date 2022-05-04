@@ -1,0 +1,23 @@
+{
+  "name": "eip712",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.6.0",
+    "@openzeppelin/contracts-upgradeable": "^4.6.0",
+    "@openzeppelin/truffle-upgrades": "^1.15.0",
+    "@truffle/hdwallet-provider": "^2.0.8",
+    "truffle-plugin-verify": "^0.5.25",
+    "web3": "^1.7.3"
+  }
+}
