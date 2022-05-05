@@ -13,6 +13,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 contract TestEIP714 is Initializable, UUPSUpgradeable, EIP712Upgradeable, OwnableUpgradeable {
     using ECDSAUpgradeable for bytes32;
 
+
     bytes32 constant TRANSFER_TYPEHASH = keccak256(
         "Transfer(address seller,address tokenAddress,uint256 amount,address buyer)"
     );
@@ -54,4 +55,6 @@ contract TestEIP714 is Initializable, UUPSUpgradeable, EIP712Upgradeable, Ownabl
     function verifySignature(bytes32 hash, bytes calldata signature) internal pure returns(address) {
         return ECDSAUpgradeable.recover(hash, signature);
     }
+
+    
 }
